@@ -136,6 +136,10 @@ Do not claim that a failure is pre-existing unless there is evidence.
     incomplete with the reason and current repository state.
 19. Purely informational tasks and tasks that produce no repository change do
     not require an empty commit.
+20. When the repository has a configured remote, a file-modifying task is not
+    complete until its task branch is pushed and represented by a pull request.
+21. Follow `documents/guide/git.md` for remote, branch, push, and pull-request
+    safety.
 
 Use this sequence for each commit unit:
 
@@ -150,12 +154,112 @@ git commit
 git show --stat --oneline --check HEAD
 ```
 
-## 12. Completion Report
+## 12. Push
+After all approved commit units are complete:
+1. verify the working tree is clean
+2. verify the current branch is the intended task branch
+3. verify the base branch and remote
+4. fetch remote state
+5. inspect branch divergence
+6. run the final validation required for the complete task
+7. push the task branch
+8. set upstream tracking on the first push
+9. verify the remote branch points to the intended commit
+
+Use an explicit push:
+
+```sh
+git fetch origin
+git status --short --branch
+git log --oneline --left-right --graph origin/<base>...HEAD
+git push --set-upstream origin HEAD
+```
+
+Rules:
+1. Do not push directly to the base branch.
+2. Do not push unrelated local commits.
+3. Do not use `--force`.
+4. Use `--force-with-lease` only when history rewriting was explicitly approved
+   and the Git guide permits it.
+5. Do not push while intended changes remain uncommitted.
+6. Do not report push success until the command completes successfully.
+7. If push is rejected, inspect remote divergence before deciding whether to
+   rebase, merge, or request instructions.
+8. Do not bypass branch protection.
+9. Do not delete the remote branch while its pull request is open.
+10. If no remote is configured, report that push and pull-request creation are
+    not applicable.
+
+## 13. Pull Requests
+After the branch is pushed:
+1. search for an existing open or closed pull request for the same head branch
+2. update an existing open pull request instead of creating a duplicate
+3. create a pull request when no suitable open pull request exists
+4. target the approved base branch
+5. verify the pull request head and base branches
+6. report the pull request URL
+
+The pull request title must:
+1. summarize one coherent task
+2. use direct, specific language
+3. match the final scope
+4. avoid `WIP`, `changes`, `update`, or other vague standalone descriptions
+
+The pull request body must include:
+1. problem or purpose
+2. changes made
+3. validation commands and results
+4. risks, compatibility effects, or rollout notes
+5. remaining limitations or follow-up work
+
+Use this format by default:
+
+```md
+## Summary
+- ...
+
+## Validation
+- `command`: passed
+
+## Risks
+- None
+```
+
+Rules:
+1. Do not create duplicate pull requests for the same branch.
+2. Do not create a pull request before its branch is pushed.
+3. Do not target a branch without verifying it is the intended integration
+   branch.
+4. Do not omit failed or skipped validation.
+5. Do not claim a check passed when it was not run.
+6. Do not include secrets, credentials, private logs, or sensitive diagnostic
+   data in the title or body.
+7. Update the title and body when the final scope changes materially.
+8. Verify the created or updated pull request through the hosting service.
+9. A file-modifying task is incomplete if required pull-request creation fails.
+10. If the repository does not use pull requests, that policy must be explicit
+    before omitting this step.
+
+Example with GitHub CLI:
+
+```sh
+gh pr list --head <branch> --state all
+gh pr create \
+  --base <base> \
+  --head <branch> \
+  --title "<title>" \
+  --body-file <body-file>
+gh pr view <branch> --json number,title,url,headRefName,baseRefName,state
+```
+
+## 14. Completion Report
 When the task is complete, use this format:
 ```md
 ## Completion Report
 - Changed: ...
 - Commits: ...
+- Push: ...
+- Pull request: ...
 - Validation: ...
 - Notes: ...
 - Worktree cleanup: Remove the created worktree?
@@ -163,10 +267,13 @@ When the task is complete, use this format:
 `Changed` should include the files or areas modified.
 `Commits` should list each abbreviated commit hash and subject in execution
 order.
+`Push` should include the remote and branch.
+`Pull request` should include the pull request number, title, and URL, or state
+why it was not applicable.
 `Validation` should include the commands run and their result.
 `Notes` should include remaining risks, skipped validation, blockers, or follow-up items.
 `Worktree cleanup` must ask whether the created worktree should be removed when a worktree was created.
-## 13. Blocked or Incomplete Work
+## 15. Blocked or Incomplete Work
 If the task cannot be completed, report:
 1. what was completed
 2. what blocked completion
@@ -174,5 +281,7 @@ If the task cannot be completed, report:
 4. commands run, if any
 5. commits created, if any
 6. uncommitted changes that remain, if any
-7. what instruction is needed from the user
+7. push status and remote branch, if any
+8. pull-request status and URL, if any
+9. what instruction is needed from the user
 Do not describe blocked, skipped, or failed work as completed.
