@@ -1,0 +1,26 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+package(default_visibility = ["//visibility:private"])
+
+kt_jvm_test(
+    name = "xquare_platform_test",
+    size = "small",
+    srcs = ["XquarePlatformApplicationTest.kt"],
+    args = [
+        "execute",
+        "--disable-banner",
+        "--select-class=kr.dsm.hs.xquare.platform.XquarePlatformApplicationTest",
+    ],
+    kotlinc_opts = "//systems/xquare-platform:kotlin_options",
+    main_class = "org.junit.platform.console.ConsoleLauncher",
+    runtime_deps = [
+        "@jvm_maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@jvm_maven//:org_junit_platform_junit_platform_console",
+        "@jvm_maven//:org_springframework_boot_spring_boot_starter_test",
+    ],
+    deps = [
+        "//systems/xquare-platform/src/main/kotlin/kr/dsm/hs/xquare/platform:xquare_platform",
+        "@jvm_maven//:org_junit_jupiter_junit_jupiter_api",
+        "@jvm_maven//:org_springframework_boot_spring_boot_test",
+    ],
+)

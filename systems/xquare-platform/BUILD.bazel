@@ -1,62 +1,19 @@
 load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
 
 package(default_visibility = ["//visibility:private"])
-
-exports_files(["maven_install.json"])
 
 kt_kotlinc_options(
     name = "kotlin_options",
     jvm_target = "25",
+    visibility = [
+        "//systems/xquare-platform/src/main/kotlin/kr/dsm/hs/xquare/platform:__pkg__",
+        "//systems/xquare-platform/src/test/kotlin/kr/dsm/hs/xquare/platform:__pkg__",
+    ],
     x_annotation_default_target = "param-property",
     x_jspecify_annotations = "strict",
 )
 
-kt_jvm_library(
-    name = "xquare_platform",
-    srcs = ["src/main/kotlin/kr/dsm/hs/xquare/platform/XquarePlatformApplication.kt"],
-    kotlinc_opts = ":kotlin_options",
-    resources = ["src/main/resources/application.yml"],
-    runtime_deps = [
-        "@xquare_platform_maven//:org_jetbrains_kotlin_kotlin_reflect",
-        "@xquare_platform_maven//:org_springframework_boot_spring_boot_starter_webmvc",
-    ],
-    deps = [
-        "@xquare_platform_maven//:org_springframework_boot_spring_boot",
-        "@xquare_platform_maven//:org_springframework_boot_spring_boot_autoconfigure",
-    ],
-)
-
-kt_jvm_binary(
+alias(
     name = "xquare_platform_app",
-    srcs = ["src/main/kotlin/kr/dsm/hs/xquare/platform/Main.kt"],
-    kotlinc_opts = ":kotlin_options",
-    main_class = "kr.dsm.hs.xquare.platform.MainKt",
-    deps = [
-        ":xquare_platform",
-        "@xquare_platform_maven//:org_springframework_boot_spring_boot",
-    ],
-)
-
-kt_jvm_test(
-    name = "xquare_platform_test",
-    size = "small",
-    srcs = ["src/test/kotlin/kr/dsm/hs/xquare/platform/XquarePlatformApplicationTest.kt"],
-    args = [
-        "execute",
-        "--disable-banner",
-        "--select-class=kr.dsm.hs.xquare.platform.XquarePlatformApplicationTest",
-    ],
-    kotlinc_opts = ":kotlin_options",
-    main_class = "org.junit.platform.console.ConsoleLauncher",
-    runtime_deps = [
-        "@xquare_platform_maven//:org_junit_jupiter_junit_jupiter_engine",
-        "@xquare_platform_maven//:org_junit_platform_junit_platform_console",
-        "@xquare_platform_maven//:org_springframework_boot_spring_boot_starter_test",
-    ],
-    deps = [
-        ":xquare_platform",
-        "@xquare_platform_maven//:org_junit_jupiter_junit_jupiter_api",
-        "@xquare_platform_maven//:org_springframework_boot_spring_boot_test",
-    ],
+    actual = "//systems/xquare-platform/src/main/kotlin/kr/dsm/hs/xquare/platform:xquare_platform_app",
 )

@@ -1,10 +1,9 @@
 module(
     name = "xquare_platform",
-    version = "0.0.0",
 )
 
 bazel_dep(name = "rules_java", version = "9.3.0")
 bazel_dep(name = "rules_jvm_external", version = "7.0")
 bazel_dep(name = "rules_kotlin", version = "2.3.20")
 
-include("//systems/xquare-platform:xquare_platform.MODULE.bazel")
+include("//build/jvm:java_deps.MODULE.bazel")

@@ -1,0 +1,38 @@
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "jvm_maven",
+    artifacts = [],
+    duplicate_version_warning = "error",
+    fail_if_repin_required = True,
+    fail_on_missing_checksum = True,
+    fetch_sources = True,
+    lock_file = "//build/jvm:maven_install.json",
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+    strict_visibility = True,
+    version_conflict_policy = "pinned",
+)
+maven.from_toml(
+    name = "jvm_maven",
+    bom_modules = [
+        "org.springframework.boot:spring-boot-dependencies",
+    ],
+    libs_versions_toml = "//build/jvm:deps.toml",
+)
+maven.override(
+    name = "jvm_maven",
+    coordinates = "org.jetbrains.kotlin:kotlin-stdlib",
+    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
+)
+maven.override(
+    name = "jvm_maven",
+    coordinates = "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk7",
+)
+maven.override(
+    name = "jvm_maven",
+    coordinates = "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
+)
+use_repo(maven, "jvm_maven")
