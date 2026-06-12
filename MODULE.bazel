@@ -7,37 +7,4 @@ bazel_dep(name = "rules_java", version = "9.3.0")
 bazel_dep(name = "rules_jvm_external", version = "7.0")
 bazel_dep(name = "rules_kotlin", version = "2.3.20")
 
-maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
-maven.install(
-    artifacts = [
-        "org.jetbrains.kotlin:kotlin-reflect:2.3.20",
-        "org.junit.jupiter:junit-jupiter-api:6.0.3",
-        "org.junit.jupiter:junit-jupiter-engine:6.0.3",
-        "org.junit.platform:junit-platform-console:6.0.3",
-        "org.springframework.boot:spring-boot:4.1.0",
-        "org.springframework.boot:spring-boot-autoconfigure:4.1.0",
-        "org.springframework.boot:spring-boot-starter-test:4.1.0",
-        "org.springframework.boot:spring-boot-starter-webmvc:4.1.0",
-        "org.springframework.boot:spring-boot-test:4.1.0",
-    ],
-    fail_if_repin_required = True,
-    fetch_sources = True,
-    known_contributing_modules = ["protobuf"],
-    lock_file = "//:maven_install.json",
-    repositories = [
-        "https://repo1.maven.org/maven2",
-    ],
-)
-maven.override(
-    coordinates = "org.jetbrains.kotlin:kotlin-stdlib",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
-)
-maven.override(
-    coordinates = "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk7",
-)
-maven.override(
-    coordinates = "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
-)
-use_repo(maven, "maven")
+include("//systems/xquare-platform:xquare_platform.MODULE.bazel")
