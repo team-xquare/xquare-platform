@@ -262,7 +262,7 @@ When the task is complete, use this format:
 - Pull request: ...
 - Validation: ...
 - Notes: ...
-- Worktree cleanup: Remove the created worktree?
+- Pull request merge: Merge the pull request?
 ```
 `Changed` should include the files or areas modified.
 `Commits` should list each abbreviated commit hash and subject in execution
@@ -272,7 +272,16 @@ order.
 why it was not applicable.
 `Validation` should include the commands run and their result.
 `Notes` should include remaining risks, skipped validation, blockers, or follow-up items.
-`Worktree cleanup` must ask whether the created worktree should be removed when a worktree was created.
+`Pull request merge` must ask whether the pull request should be merged after
+the pull request has been created or updated and verified.
+Do not merge the pull request without explicit user approval.
+Ask about worktree cleanup only after the user has decided whether to merge the
+pull request and any approved merge attempt has completed.
+When a worktree was created, use this follow-up after the merge decision:
+```md
+- Worktree cleanup: Remove the created worktree?
+```
+
 ## 15. Blocked or Incomplete Work
 If the task cannot be completed, report:
 1. what was completed
