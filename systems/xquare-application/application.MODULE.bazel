@@ -1,3 +1,14 @@
+bazel_dep(name = "aspect_rules_lint", version = "2.6.0")
+
+ktlint = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+ktlint(
+    name = "xquare_application_ktlint",
+    executable = True,
+    sha256 = "a3fd620207d5c40da6ca789b95e7f823c54e854b7fade7f613e91096a3706d75",
+    urls = ["https://github.com/ktlint/ktlint/releases/download/1.8.0/ktlint"],
+)
+
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "jvm_maven",

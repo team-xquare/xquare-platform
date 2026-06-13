@@ -26,7 +26,8 @@ Do not preserve a local pattern that is unsafe or contradicts a higher-priority
 rule.
 
 ## 2. Formatting and Tooling
-1. Use the repository-configured Kotlin formatter and linter.
+1. Use the repository-configured Kotlin formatter when present and the
+   repository-configured linter.
 2. Follow the official Kotlin style based on the IntelliJ IDEA Kotlin style.
 3. Do not manually align declarations, assignments, arguments, or comments.
 4. Use four spaces for indentation.
@@ -40,12 +41,12 @@ rule.
     reason.
 11. Keep formatting-only changes separate from unrelated behavioral changes.
 
-Run the repository's configured equivalents of:
+Run Kotlin lint through its Bazel test target. Do not invoke a host-installed
+ktlint binary.
 
 ```sh
-<formatter> --check
-<linter>
-<build-tool> test
+bazelisk test <affected-ktlint-test-target>
+bazelisk test <affected-kotlin-test-target>
 ```
 
 ## 3. Source Layout
@@ -772,9 +773,8 @@ Do not:
 Run the smallest repository commands that cover the changed scope:
 
 ```sh
-<formatter> --check
-<linter>
-<build-tool> test <affected-target>
+bazelisk test <affected-ktlint-test-target>
+bazelisk test <affected-kotlin-test-target>
 ```
 
 Also consider:

@@ -1,4 +1,5 @@
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("//systems/xquare-application/lint:linters.bzl", "ktlint_test")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -27,5 +28,14 @@ kt_jvm_binary(
     deps = [
         ":xquare_application_lib",
         "@jvm_maven//:org_springframework_boot_spring_boot",
+    ],
+)
+
+ktlint_test(
+    name = "xquare_application_ktlint_test",
+    size = "small",
+    srcs = [
+        ":xquare_application",
+        ":xquare_application_lib",
     ],
 )

@@ -7,6 +7,14 @@ exports_files([
     "maven_install.json",
 ])
 
+exports_files(
+    [
+        ".editorconfig",
+        "ktlint-baseline.xml",
+    ],
+    visibility = ["//systems/xquare-application:__subpackages__"],
+)
+
 kt_kotlinc_options(
     name = "kotlin_options",
     jvm_target = "25",
