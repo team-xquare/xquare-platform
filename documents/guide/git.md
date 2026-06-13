@@ -12,6 +12,10 @@ project rules that keep changes understandable, reviewable, and recoverable.
 5. Inspect before staging, committing, rebasing, merging, or deleting.
 6. Prefer commands whose effects are narrow and visible.
 7. Do not use destructive Git commands without explicit approval.
+8. When creating an Issue or pull request with `gh`, assign the authenticated
+   user with `--assignee "@me"` unless the user explicitly specifies a
+   different assignee. `@me` means the human user authenticated in `gh`, not
+   GPT or another agent.
 
 ## 2. Repository State
 Before modifying files:
@@ -73,6 +77,15 @@ An Issue must state:
 2. scope
 3. acceptance criteria
 4. relevant constraints, risks, or dependencies
+
+Create an Issue with the default assignee:
+
+```sh
+gh issue create \
+  --assignee "@me" \
+  --title "<title>" \
+  --body-file <body-file>
+```
 
 ### 4.2 Branch Format
 Use:
@@ -477,6 +490,17 @@ Closes #123
 17. Do not create duplicate pull requests for the same branch.
 18. If several Issues are required, list each reference explicitly and explain
     why one pull request is still a coherent review unit.
+
+Create a pull request with the default assignee:
+
+```sh
+gh pr create \
+  --assignee "@me" \
+  --base <base> \
+  --head <branch> \
+  --title "<title>" \
+  --body-file <body-file>
+```
 
 ## 12. Reverting and Restoring
 1. Use `git revert` to undo a shared commit because it records a new inverse
