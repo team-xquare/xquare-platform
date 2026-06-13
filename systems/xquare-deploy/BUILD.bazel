@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:private"])
+
+go_library(
+    name = "xquare_deploy_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/team-xquare/xquare-platform/systems/xquare-deploy",
+)
+
+go_binary(
+    name = "xquare_deploy",
+    embed = [":xquare_deploy_lib"],
+)
+
+go_test(
+    name = "xquare_deploy_test",
+    size = "small",
+    srcs = ["main_test.go"],
+    embed = [":xquare_deploy_lib"],
+)
