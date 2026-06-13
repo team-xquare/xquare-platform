@@ -209,7 +209,7 @@ jobs:
           fail-on-severity: high
 
   gate:
-    name: Gate
+    name: CI / Gate
     if: always()
     needs:
       - policy
