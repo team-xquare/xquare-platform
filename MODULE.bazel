@@ -1,0 +1,8 @@
+module(
+    name = "xquare_platform",
+)
+
+include("//build/go:go.MODULE.bazel")
+include("//build/js:js.MODULE.bazel")
+include("//build/jvm:jvm.MODULE.bazel")
+include("//systems/xquare-application:application.MODULE.bazel")
