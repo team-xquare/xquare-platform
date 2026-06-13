@@ -1,0 +1,22 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_test")
+
+package(default_visibility = ["//visibility:private"])
+
+js_binary(
+    name = "xquare_supporter",
+    data = [
+        "package.json",
+        "supporter.mjs",
+    ],
+    entry_point = "main.mjs",
+)
+
+js_test(
+    name = "xquare_supporter_test",
+    size = "small",
+    data = [
+        "package.json",
+        "supporter.mjs",
+    ],
+    entry_point = "supporter.test.mjs",
+)
