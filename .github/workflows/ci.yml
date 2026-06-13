@@ -1,0 +1,248 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  merge_group:
+    types:
+      - checks_requested
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.event.merge_group.head_sha || github.ref }}
+  cancel-in-progress: true
+
+env:
+  MISE_VERSION: 2026.6.6
+  MISE_SHA256: b8c25ad5e1c178bb7ba1e0fca9066153f8ef1b28bf5a8456c20a8acd2522e556
+
+jobs:
+  policy:
+    name: Policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
+
+      - name: Set up mise
+        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+        with:
+          version: ${{ env.MISE_VERSION }}
+          sha256: ${{ env.MISE_SHA256 }}
+          cache_save: ${{ github.event_name != 'pull_request' }}
+
+      - name: Check Bazel formatting
+        run: mise exec -- buildifier -mode=check -lint=warn -r .
+
+      - name: Require full commit SHAs for actions
+        uses: zgosalvez/github-actions-ensure-sha-pinned-actions@ca46236c6ce584ae24bc6283ba8dcf4b3ec8a066 # v5.0.4
+
+  bazel:
+    name: Bazel
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+        with:
+          version: ${{ env.MISE_VERSION }}
+          sha256: ${{ env.MISE_SHA256 }}
+          cache_save: ${{ github.event_name != 'pull_request' }}
+
+      - name: Determine validation scope
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || '' }}
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          target_branch="${TARGET_BRANCH#refs/heads/}"
+          mode="affected"
+          comparison_sha=""
+          reason="affected Bazel targets"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" || "${target_branch}" == "main" ]]; then
+            mode="full"
+            reason="main qualification or manual validation"
+          elif [[ -z "${BASE_SHA}" ]] || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            mode="full"
+            reason="base revision is unavailable"
+          elif ! comparison_sha="$(git merge-base "${BASE_SHA}" HEAD)"; then
+            mode="full"
+            reason="merge base could not be determined"
+          else
+            changes="${RUNNER_TEMP}/changes.tsv"
+            git diff --name-status "${comparison_sha}" HEAD >"${changes}"
+
+            if [[ ! -s "${changes}" ]]; then
+              mode="none"
+              reason="no changed files"
+            else
+              full=false
+              documentation_only=true
+
+              while IFS=$'\t' read -r status first_path second_path; do
+                [[ -z "${status}" ]] && continue
+
+                if [[ "${status}" == D* || "${status}" == R* ]]; then
+                  full=true
+                fi
+
+                for path in "${first_path}" "${second_path}"; do
+                  [[ -z "${path}" ]] && continue
+
+                  case "${path}" in
+                    .bazelrc|.bazelversion|MODULE.bazel|MODULE.bazel.lock|mise.toml|build/*|.github/*|*.bzl|*.MODULE.bazel)
+                      full=true
+                      ;;
+                  esac
+
+                  case "${path}" in
+                    AGENTS.md|documents/*.md|README|README.*|*/README|*/README.*)
+                      ;;
+                    *)
+                      documentation_only=false
+                      ;;
+                  esac
+                done
+              done <"${changes}"
+
+              if [[ "${full}" == "true" ]]; then
+                mode="full"
+                reason="repository-wide configuration, deletion, or rename"
+              elif [[ "${documentation_only}" == "true" ]]; then
+                mode="none"
+                reason="documentation-only change"
+              fi
+            fi
+          fi
+
+          printf 'mode=%s\n' "${mode}" >>"${GITHUB_OUTPUT}"
+          printf 'comparison_sha=%s\n' "${comparison_sha}" >>"${GITHUB_OUTPUT}"
+          printf 'Validation mode: %s (%s)\n' "${mode}" "${reason}"
+
+      - name: Build all targets
+        if: steps.scope.outputs.mode == 'full'
+        run: mise exec -- bazelisk build --keep_going //...
+
+      - name: Test all targets
+        if: steps.scope.outputs.mode == 'full'
+        run: mise exec -- bazelisk test --keep_going --test_output=errors //...
+
+      - name: Test affected targets
+        if: steps.scope.outputs.mode == 'affected'
+        env:
+          COMPARISON_SHA: ${{ steps.scope.outputs.comparison_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          driver="${RUNNER_TEMP}/target-determinator-driver"
+          curl \
+            --fail \
+            --location \
+            --proto '=https' \
+            --retry 3 \
+            --show-error \
+            --silent \
+            --tlsv1.2 \
+            https://github.com/bazel-contrib/target-determinator/releases/download/v0.33.2/driver.linux.amd64 \
+            --output "${driver}"
+          echo "178e6c3f5758a84619932a0a8154a09e31866306e68fa92e2123b8ffaae4e1f1  ${driver}" |
+            sha256sum --check --status
+          chmod 0755 "${driver}"
+
+          if ! "${driver}" -bazel bazelisk "${COMPARISON_SHA}"; then
+            echo "Affected-target validation failed; running full validation."
+            mise exec -- bazelisk build --keep_going //...
+            mise exec -- bazelisk test --keep_going --test_output=errors //...
+          fi
+
+      - name: Record skipped Bazel validation
+        if: steps.scope.outputs.mode == 'none'
+        run: echo "No Bazel validation is required for this change."
+
+  security:
+    name: Security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
+
+      - name: Scan dependencies, configuration, and secrets
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          timeout: 15m
+          hide-progress: true
+
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request' && github.event.repository.visibility == 'public'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+
+  gate:
+    name: Gate
+    if: always()
+    needs:
+      - policy
+      - bazel
+      - security
+      - dependency-review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require all applicable checks
+        env:
+          POLICY_RESULT: ${{ needs.policy.result }}
+          BAZEL_RESULT: ${{ needs.bazel.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+          DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency-review.result }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failed=false
+          for result in \
+            "${POLICY_RESULT}" \
+            "${BAZEL_RESULT}" \
+            "${SECURITY_RESULT}" \
+            "${DEPENDENCY_REVIEW_RESULT}"; do
+            if [[ "${result}" != "success" && "${result}" != "skipped" ]]; then
+              failed=true
+            fi
+          done
+
+          if [[ "${failed}" == "true" ]]; then
+            echo "One or more required CI jobs did not pass."
+            exit 1
+          fi
+
+          echo "All applicable CI jobs passed."
