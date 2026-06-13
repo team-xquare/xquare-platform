@@ -31,7 +31,7 @@ jobs:
       matrix:
         include:
           - language: go
-            build-mode: none
+            build-mode: manual
           - language: java-kotlin
             build-mode: manual
           - language: javascript-typescript
@@ -46,13 +46,21 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
 
-      - name: Set up mise for Kotlin build
-        if: matrix.language == 'java-kotlin'
+      - name: Set up mise for compiled-language build
+        if: matrix.language == 'go' || matrix.language == 'java-kotlin'
         uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
         with:
           version: 2026.6.6
           sha256: b8c25ad5e1c178bb7ba1e0fca9066153f8ef1b28bf5a8456c20a8acd2522e556
           cache_save: ${{ github.event_name != 'pull_request' }}
+
+      - name: Build Go targets
+        if: matrix.language == 'go'
+        run: |
+          mise exec -- bazelisk build \
+            //systems/xquare-deploy/... \
+            //systems/xquare-intelligence/... \
+            //systems/xquare-mcp/...
 
       - name: Build Kotlin targets
         if: matrix.language == 'java-kotlin'
