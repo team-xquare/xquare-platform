@@ -1,10 +1,10 @@
-package kr.dsm.hs.xquare.platform
+package kr.dsm.hs.xquare.application
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class XquarePlatformApplicationTest {
+class XquareApplicationTest {
     @Test
     fun contextLoads() {
     }
