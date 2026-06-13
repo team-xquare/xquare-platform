@@ -15,4 +15,4 @@ go_sdk.download(version = "1.26.4")
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 node.toolchain(node_version = "24.14.1")
 
-include("//build/jvm:java_deps.MODULE.bazel")
+include("//systems/xquare-application:application.MODULE.bazel")

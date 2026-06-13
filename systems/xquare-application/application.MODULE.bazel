@@ -6,7 +6,7 @@ maven.install(
     fail_if_repin_required = True,
     fail_on_missing_checksum = True,
     fetch_sources = True,
-    lock_file = "//build/jvm:maven_install.json",
+    lock_file = "//systems/xquare-application:maven_install.json",
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
@@ -18,7 +18,7 @@ maven.from_toml(
     bom_modules = [
         "org.springframework.boot:spring-boot-dependencies",
     ],
-    libs_versions_toml = "//build/jvm:deps.toml",
+    libs_versions_toml = "//systems/xquare-application:deps.toml",
 )
 maven.override(
     name = "jvm_maven",

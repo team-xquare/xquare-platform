@@ -2,6 +2,11 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options")
 
 package(default_visibility = ["//visibility:private"])
 
+exports_files([
+    "deps.toml",
+    "maven_install.json",
+])
+
 kt_kotlinc_options(
     name = "kotlin_options",
     jvm_target = "25",
