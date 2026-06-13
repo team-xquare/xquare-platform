@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:private"])
+
+go_library(
+    name = "xquare_mcp_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/team-xquare/xquare-platform/systems/xquare-mcp",
+)
+
+go_binary(
+    name = "xquare_mcp",
+    embed = [":xquare_mcp_lib"],
+)
+
+go_test(
+    name = "xquare_mcp_test",
+    size = "small",
+    srcs = ["main_test.go"],
+    embed = [":xquare_mcp_lib"],
+)
