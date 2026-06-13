@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:private"])
+
+go_library(
+    name = "xquare_intelligence_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/team-xquare/xquare-platform/systems/xquare-intelligence",
+)
+
+go_binary(
+    name = "xquare_intelligence",
+    embed = [":xquare_intelligence_lib"],
+)
+
+go_test(
+    name = "xquare_intelligence_test",
+    size = "small",
+    srcs = ["main_test.go"],
+    embed = [":xquare_intelligence_lib"],
+)

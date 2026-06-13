@@ -2,4 +2,7 @@ go 1.26.0
 
 toolchain go1.26.4
 
-use ./systems/xquare-deploy
+use (
+	./systems/xquare-deploy
+	./systems/xquare-intelligence
+)
