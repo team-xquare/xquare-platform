@@ -46,6 +46,14 @@ test:ci --test_output=errors
 8. Use Bzlmod module dependencies with explicit versions.
 9. Commit `MODULE.bazel.lock` when Bazel generates it.
 10. Do not edit generated lockfiles manually.
+11. Bazel owns the compiler, runtime, and build-time linter versions used by
+    build and test actions, including Java, Go, Node, and ktlint.
+12. Declare shared language toolchains under `build/<language>/` and
+    system-specific tools and dependencies in that system's module fragment.
+13. Keep the root `MODULE.bazel` focused on composing shared language and
+    system module fragments.
+14. Do not require developers or CI to install a Bazel-owned tool separately
+    through mise or the host operating system.
 
 ## 4. File Names and Package Boundaries
 1. Prefer `BUILD.bazel` over `BUILD` for new packages.
@@ -272,12 +280,14 @@ package(default_visibility = ["//visibility:private"])
    system time, locale, hostname, or network access unless a rule explicitly
    models that dependency.
 3. Use Bazel toolchains for compilers and platform tools.
-4. Keep repository rules and module extensions deterministic.
-5. Verify downloaded artifacts with checksums when the dependency mechanism
+4. Run build-time linters through Bazel targets with declared inputs and the
+   registered toolchain runtime.
+5. Keep repository rules and module extensions deterministic.
+6. Verify downloaded artifacts with checksums when the dependency mechanism
    supports them.
-6. Do not fetch dependencies from arbitrary URLs during normal build actions.
-7. Do not write into the source tree from a build or test.
-8. Keep generated outputs deterministic: stable ordering, stable timestamps,
+7. Do not fetch dependencies from arbitrary URLs during normal build actions.
+8. Do not write into the source tree from a build or test.
+9. Keep generated outputs deterministic: stable ordering, stable timestamps,
    and no machine-specific paths.
 
 ## 17. Tests

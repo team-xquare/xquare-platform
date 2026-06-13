@@ -5,7 +5,7 @@ that keep tool selection and task execution explicit.
 
 ## 1. Responsibilities
 Use mise for:
-1. selecting development-tool versions
+1. selecting bootstrap and developer-tool versions that Bazel does not own
 2. installing those tools
 3. exposing non-secret project environment defaults
 4. providing discoverable developer task entry points
@@ -18,20 +18,24 @@ Do not use mise to:
 4. duplicate versions owned by another canonical file
 5. create complex shell orchestration that belongs in a tested script or build
    rule
+6. install compilers, runtimes, or linters already provided by Bazel toolchains
+   or Bazel targets
 
 ## 2. Source of Truth
 1. Use the root `mise.toml` as the shared project configuration.
 2. Keep personal overrides out of committed shared configuration.
 3. Use `mise.local.toml` only for local values and keep it ignored.
 4. Define each version in one canonical place.
-5. This repository pins Bazelisk in `mise.toml`.
+5. This repository pins only Bazelisk and Buildifier in `mise.toml`.
 6. This repository pins Bazel itself in `.bazelversion`.
-7. Do not add a second Bazel version to `mise.toml`.
-8. Do not add `.tool-versions`, `.node-version`, `.go-version`, or similar files
-   when `mise.toml` already owns the same version unless another supported tool
-   requires that file.
-9. If an idiomatic version file is required, document which file is canonical
-   and configure mise's support explicitly.
+7. Bazel and Bzlmod own build and test toolchains, including Java, Go, and Node,
+   and build-time linters such as ktlint.
+8. Do not add a Bazel-owned compiler, runtime, or linter to `mise.toml`.
+9. Do not add a second Bazel version to `mise.toml`.
+10. Do not add `.tool-versions`, `.node-version`, `.go-version`, or similar
+    files when the version is already owned by Bazel or `mise.toml`.
+11. If an idiomatic version file is required, document which file is canonical
+    and configure mise's support explicitly.
 
 ## 3. Configuration Format
 1. Use valid TOML.
@@ -49,6 +53,7 @@ Do not use mise to:
 ```toml
 [tools]
 bazelisk = "1.29.0"
+buildifier = "8.5.1"
 ```
 
 ## 4. Tool Versions
@@ -108,7 +113,7 @@ mise ls
    not guaranteed:
 
 ```sh
-mise exec -- bazel version
+mise exec -- bazelisk version
 mise run test
 ```
 
@@ -119,8 +124,8 @@ mise run test
 ## 7. Tasks
 1. Define a mise task only when it is a meaningful, repeated developer
    operation.
-2. Use Bazel targets for build and test graph semantics; a mise task may provide
-   a short entry point to those targets.
+2. Use Bazel targets for build, test, lint, and toolchain semantics; a mise task
+   may provide a short entry point to those targets.
 3. Use lowercase task names with colon-separated namespaces:
 
 ```text
@@ -150,11 +155,11 @@ deps:update
 ```toml
 [tasks.format]
 description = "Format repository source files"
-run = "bazel run //tools:format"
+run = "bazelisk run //tools:format"
 
 [tasks.test]
 description = "Run all repository tests"
-run = "bazel test //..."
+run = "bazelisk test //..."
 
 [tasks."ci:check"]
 description = "Run required CI validation"
