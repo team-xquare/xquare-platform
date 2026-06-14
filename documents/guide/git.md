@@ -502,6 +502,31 @@ gh pr create \
   --body-file <body-file>
 ```
 
+### 11.1 Merge Queue
+When a protected integration branch requires GitHub's merge queue:
+1. Do not merge an eligible pull request directly. Add it to the merge queue.
+2. Treat pull-request validation and merge-group validation as separate
+   requirements. Passing pull-request checks does not prove that the queued
+   merge result is valid.
+3. Required CI workflows must handle the `merge_group` event and validate the
+   temporary merge result against the latest target branch state.
+4. Do not report a pull request as merged until the queue reports that the
+   merge completed and the target branch contains the resulting commit.
+5. If the queue removes the pull request or a required check fails, report the
+   failure and correct the pull-request branch before adding it again.
+6. Do not bypass a failed or unavailable merge queue with an administrator
+   merge.
+7. Do not push to, modify, or depend on the lifetime of a merge queue's
+   temporary ref.
+8. Preserve the repository's configured merge method. Do not change between
+   merge, squash, or rebase merely to make a queued pull request pass.
+9. When merging to a branch whose new commits trigger deployment, the
+   merge-group checks must complete successfully before the merge. Post-merge
+   validation is not a substitute for deployment qualification.
+10. When an agent receives approval to merge a queued pull request, it may add
+    the pull request to the queue, monitor the queue result, and report the
+    outcome. It must not bypass required reviews or checks.
+
 ## 12. Reverting and Restoring
 1. Use `git revert` to undo a shared commit because it records a new inverse
    commit.
@@ -605,6 +630,9 @@ git log --oneline -- path/to/file
 - Is the task branch pushed to the expected remote?
 - Does the pull request reference a valid primary Issue?
 - Does the pull request use `Closes` only when it fully satisfies the Issue?
+- If merge queue is required, did the queued merge result pass every required
+  check?
+- Was the merge confirmed on the target branch before reporting completion?
 - Are worktree cleanup and branch deletion deferred until approved?
 
 ## References
@@ -614,3 +642,4 @@ git log --oneline -- path/to/file
 - [Pro Git: Rewriting History](https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History)
 - [Git SubmittingPatches](https://git-scm.com/docs/SubmittingPatches)
 - [GitHub: Linking a Pull Request to an Issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)
+- [GitHub: Managing a merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue)
