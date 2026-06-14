@@ -76,9 +76,9 @@ event validates GitHub's temporary merge result against the latest target
 branch state. Do not replace merge-group validation with the earlier pull
 request result.
 
-The repository does not require CODEOWNERS. Branch rules should instead require
-at least one pull-request approval, dismiss stale approvals after new commits,
-block force pushes and branch deletion, and prevent administrator bypass.
+The repository does not require CODEOWNERS. Branch rules should dismiss stale
+approvals after new commits, block force pushes and branch deletion, and
+prevent administrator bypass.
 
 ## Security
 
