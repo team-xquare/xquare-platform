@@ -1,6 +1,0 @@
-package(default_visibility = ["//visibility:private"])
-
-exports_files(
-    ["application.yml"],
-    visibility = ["//systems/xquare-application/src/main/kotlin/kr/dsm/hs/xquare/application:__pkg__"],
-)

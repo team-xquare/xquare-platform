@@ -1,0 +1,41 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("//systems/xquare-application/lint:linters.bzl", "ktlint_test")
+
+package(default_visibility = ["//visibility:private"])
+
+kt_jvm_library(
+    name = "xquare_application_lib",
+    srcs = ["XquareApplication.kt"],
+    kotlinc_opts = "//systems/xquare-application:kotlin_options",
+    resources = ["//systems/xquare-application/xquare-application-infrastructure/src/main/resources:application.yml"],
+    visibility = ["//systems/xquare-application/xquare-application-infrastructure/src/test/kotlin/kr/dsm/hs/xquare/infrastructure:__pkg__"],
+    runtime_deps = [
+        "@jvm_maven//:org_jetbrains_kotlin_kotlin_reflect",
+        "@jvm_maven//:org_springframework_boot_spring_boot_starter_webmvc",
+    ],
+    deps = [
+        "@jvm_maven//:org_springframework_boot_spring_boot",
+        "@jvm_maven//:org_springframework_boot_spring_boot_autoconfigure",
+    ],
+)
+
+kt_jvm_binary(
+    name = "xquare_application",
+    srcs = ["Main.kt"],
+    kotlinc_opts = "//systems/xquare-application:kotlin_options",
+    main_class = "kr.dsm.hs.xquare.infrastructure.MainKt",
+    visibility = ["//systems/xquare-application:__pkg__"],
+    deps = [
+        ":xquare_application_lib",
+        "@jvm_maven//:org_springframework_boot_spring_boot",
+    ],
+)
+
+ktlint_test(
+    name = "xquare_application_ktlint_test",
+    size = "small",
+    srcs = [
+        ":xquare_application",
+        ":xquare_application_lib",
+    ],
+)
