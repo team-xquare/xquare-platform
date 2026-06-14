@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package xquare.identity.v1;
+
+option java_multiple_files = true;
+option java_package = "kr.dsm.hs.xquare.contract.identity.v1";
+
+service IdentityExampleService {
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+}
+
+message GetIdentityRequest {
+  string identity_id = 1;
+}
+
+message GetIdentityResponse {
+  string identity_id = 1;
+  string display_name = 2;
+}
