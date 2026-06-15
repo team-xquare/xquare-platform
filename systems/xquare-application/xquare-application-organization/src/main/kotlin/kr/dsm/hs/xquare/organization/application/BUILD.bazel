@@ -1,0 +1,16 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+package(default_visibility = ["//visibility:private"])
+
+kt_jvm_library(
+    name = "application",
+    srcs = glob(
+        ["*.kt"],
+        allow_empty = True,
+    ),
+    kotlinc_opts = "//systems/xquare-application:kotlin_options",
+    visibility = [
+        "//systems/xquare-application/xquare-application-infrastructure:__subpackages__",
+        "//systems/xquare-application/xquare-application-organization/src/main/kotlin/kr/dsm/hs/xquare/organization/adapter:__pkg__",
+    ],
+)

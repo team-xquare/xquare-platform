@@ -18,15 +18,12 @@ exports_files(
 kt_kotlinc_options(
     name = "kotlin_options",
     jvm_target = "25",
-    visibility = [
-        "//systems/xquare-application/src/main/kotlin/kr/dsm/hs/xquare/application:__pkg__",
-        "//systems/xquare-application/src/test/kotlin/kr/dsm/hs/xquare/application:__pkg__",
-    ],
+    visibility = ["//systems/xquare-application:__subpackages__"],
     x_annotation_default_target = "param-property",
     x_jspecify_annotations = "strict",
 )
 
 alias(
     name = "xquare_application",
-    actual = "//systems/xquare-application/src/main/kotlin/kr/dsm/hs/xquare/application:xquare_application",
+    actual = "//systems/xquare-application/xquare-application-infrastructure/src/main/kotlin/kr/dsm/hs/xquare/infrastructure:xquare_application",
 )
